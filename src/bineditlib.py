@@ -147,9 +147,6 @@ class BinEdit():
         if path_file_input == "" or path_file_output == "":
             logger.error("Files path required to extract data from bin file")
             return False
-        if address == 0:
-            logger.error("Address larger than 0 required")
-            return False
         # If number of bytes is zero, use file full size from address
         if num_bytes == 0:
             num_bytes = os_stat(path_file_input).st_size - address
