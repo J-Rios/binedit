@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# Check required arguments
+if [ $# -lt 1 ]; then
+    echo "Required a binary file (and optionally an address and size):"
+    echo "binedit_show firmware.bin"
+    echo "binedit_show firmware.bin 0x08008000 64"
+    exit 1
+fi
+
+# Show content of file
+if [ $# -lt 2 ]; then
+    binedit --show --input $1
+else
+    binedit --show --input $1 --base_address 0x08000000 --address $2
+fi
+
+exit 0

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Check required arguments
+if [ $# -lt 3 ]; then
+    echo "Required input firmware file and output bootloader file to generate:"
+    echo "binedit_split_boot_app firmware.bin boot.bin app.bin"
+    exit 1
+fi
+
+# Split FW into Bootloader and Application files
+binedit --split --input $1 --output $2 --output2 $3 --base_address 0x08000000 --address 0x08008000
+
+exit 0

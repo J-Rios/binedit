@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Check required arguments
+if [ $# -lt 1 ]; then
+    echo "Required path to binary file to create:"
+    echo "binedit_create firmware.bin"
+    exit 1
+fi
+
+# Create a clear FW file of 256KB
+binedit --create --input $1 --size 262144
+
+exit 0

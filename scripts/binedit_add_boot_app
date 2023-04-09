@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# Check required arguments
+if [ $# -lt 3 ]; then
+    echo "Required input boot and app files and output file:"
+    echo "binedit_add_boot_app firmware.bin boot.bin app.bin"
+    exit 1
+fi
+
+# Create a clear FW file of 256KB
+binedit --create --input $1 --size 262144
+
+# Add Bootloader
+binedit --add --base_address 0x08000000 --input $2 --output $1 --output_address 0x08000000
+
+# Add Application
+binedit --add --base_address 0x08000000 --input $3 --output $1 --output_address 0x08008000
+
+exit 0

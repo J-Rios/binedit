@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Check required arguments
+if [ $# -lt 2 ]; then
+    echo "Required input firmware file and output app file to generate:"
+    echo "binedit_get_app firmware.bin app.bin"
+    exit 1
+fi
+
+# Extract Application Section from a full FW file
+binedit --get --input $1 --output $2 --base_address 0x08000000 --address 0x08008000
+
+exit 0
