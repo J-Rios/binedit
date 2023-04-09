@@ -11,6 +11,8 @@ Description:
       - Show binary file's content in hexadecimal and ascii (hexdump).
       - Clear bytes (set to 0xFF) on given binary file address.
       - Extract binary file data from address range into a binary file.
+      - Join binary files by insert bytes from one to another.
+      - Split a single binary file into two binary files.
 Author:
     Jose Miguel Rios Rubio
 Creation date:
@@ -81,14 +83,29 @@ class TEXT():
     OPT_GET = \
         "Extract data from a binary file address to a new binary file."
 
+    OPT_ADD = \
+        "Insert data from a binary filo into another file."
+
+    OPT_SPLIT = \
+        "Split data from a single binary file into two binary files."
+
     OPT_INPUT = \
         "Input binary file to use."
 
     OPT_OUTPUT = \
         "Output binary file to use."
 
+    OPT_OUTPUT2 = \
+        "Second Output binary file to use (i.e. for \"--split\" command)"
+
     OPT_ADDRESS_INPUT = \
         "Specify input binary address."
+
+    OPT_ADDRESS_OUTPUT = \
+        "Specify output binary file address."
+
+    OPT_ADDRESS_BASE = \
+        "Base address offset to use as reference for input-output addresses."
 
     OPT_SIZE = \
         "Specify size of bytes to manipulate."
@@ -111,27 +128,47 @@ def parse_options():
     parser.add_argument("--show", help=TEXT.OPT_SHOW, action="store_true")
     parser.add_argument("--clear", help=TEXT.OPT_CLEAR, action="store_true")
     parser.add_argument("--get", help=TEXT.OPT_GET, action="store_true")
+    parser.add_argument("--add", help=TEXT.OPT_ADD, action="store_true")
+    parser.add_argument("--split", help=TEXT.OPT_SPLIT, action="store_true")
     parser.add_argument("--input", help=TEXT.OPT_INPUT,
                         action="store", type=str)
     parser.add_argument("--output", help=TEXT.OPT_OUTPUT,
                         action="store", type=str)
+    parser.add_argument("--output2", help=TEXT.OPT_OUTPUT2,
+                        action="store", type=str)
     parser.add_argument("--address", help=TEXT.OPT_ADDRESS_INPUT,
+                        action="store", type=auto_int, default=0)
+    parser.add_argument("--output_address", help=TEXT.OPT_ADDRESS_OUTPUT,
+                        action="store", type=auto_int, default=0)
+    parser.add_argument("--base_address", help=TEXT.OPT_ADDRESS_BASE,
                         action="store", type=auto_int, default=0)
     parser.add_argument("-s", "--size", help=TEXT.OPT_SIZE,
                         action="store", type=auto_int, default=0)
     args = parser.parse_args()
     # Check required options combinations
     if (args.create) and \
-    ( (args.input is None) or (args.size is None) ):
+    ((args.input is None) or (args.size is None)):
         parser.error("Arguments Required: --input, --size")
     if (args.show) and (args.input is None):
         parser.error("Arguments Required: --input")
-    if args.clear and ( (args.input is None) or (args.address is None)
-                     or (args.size == 0) ):
+    if (args.clear) and \
+    ((args.input is None) or (args.address is None) or (args.size == 0)):
         parser.error("Arguments Required: --input, --address, --size")
-    if args.get and ( (args.input is None) or (args.output is None)
-                     or (args.address is None) ):
+    if (args.get) and \
+    ((args.input is None) or (args.output is None) or (args.address is None)):
         parser.error("Arguments Required: --input, --output, --address")
+    if (args.add) and \
+    ((args.input is None) or (args.output is None) or \
+     (args.output_address is None)):
+        parser.error("Arguments Required: --input, --output, --output_address")
+    if (args.split) and \
+    ((args.input is None) or (args.output is None) or (args.output2 is None)):
+        parser.error("Arguments Required: --input, --output, --output2")
+    # Data conversions
+    if args.address and args.base_address:
+        args.address = args.address - args.base_address
+    if args.output_address and args.base_address:
+        args.output_address = args.output_address - args.base_address
     return args
 
 
@@ -155,6 +192,14 @@ def main(argc, argv):
     elif args.get:
         logger.debug("Getting data from binary file...")
         binedit.extract_data(args.input, args.address, args.size, args.output)
+    elif args.add:
+        logger.debug("Adding data from source file into target file")
+        binedit.join_files(args.input, args.address, args.size, args.output,
+                           args.output_address)
+    elif args.split:
+        logger.debug("Splitting data from file...")
+        binedit.split_files(args.input, args.address, args.output,
+                            args.output2)
     return 0
 
 

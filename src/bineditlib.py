@@ -11,6 +11,8 @@ Description:
       - Show binary file's content in hexadecimal and ascii (hexdump).
       - Clear bytes (set to 0xFF) on given binary file address.
       - Extract binary file data from address range into a binary file.
+      - Join binary files by insert bytes from one to another.
+      - Split a single binary file into two binary files.
 Author:
     Jose Miguel Rios Rubio
 Creation date:
@@ -159,6 +161,102 @@ class BinEdit():
         # Get the requested data section and write it to file
         extract_bytes = file_bytes[address:num_bytes]
         return self._write_file(path_file_output, extract_bytes)
+
+
+    def join_files(self, path_file_src: str, address_file_src: int,
+                  num_bytes: int, path_file_target: str,
+                  address_file_target: int):
+        '''
+        Insert binary data from a source binary file, by address and
+        number of bytes, into a target binary file address. The target
+        file data will be overwritten.
+        '''
+        # Check arguments
+        if path_file_src == "" or path_file_target == "":
+            logger.error("Files path required to join bin file")
+            return False
+        # If number of bytes is zero, use source file full size
+        if num_bytes == 0:
+            num_bytes = os_stat(path_file_src).st_size
+        # Read the full source file content and check it
+        file_src_bytes = self._read_file(path_file_src)
+        if file_src_bytes is None:
+            print(f"Fail to read source binary file {path_file_src}")
+            return False
+        file_src_size = len(file_src_bytes)
+        if address_file_src >= file_src_size:
+            print(f"Address requested to read from source binary file larger "
+                  f"than file size (max address: 0x{file_src_size - 1:02x}")
+            return False
+        # Limit size of bytes to read if request more than file size
+        if address_file_src + num_bytes > file_src_size:
+            num_bytes = file_src_size - address_file_src
+        # Read the full target file content and check it
+        file_target_bytes = self._read_file(path_file_target)
+        if file_target_bytes is None:
+            print(f"Fail to read target binary file {path_file_target}")
+            return False
+        file_target_size = len(file_target_bytes)
+        # Fix address to end of target file if large address requested
+        src_bytes = bytearray()
+        num_padding_bytes = 0
+        if address_file_target > file_target_size:
+            num_padding_bytes = address_file_target - file_target_size
+            src_bytes = bytearray([0xFF] * (num_padding_bytes))
+        # Join binary files data
+        src_bytes.extend(
+            file_src_bytes[address_file_src:address_file_src+num_bytes])
+        num_bytes = num_bytes + num_padding_bytes
+        join_bytes = bytearray()
+        if address_file_target == 0:
+            join_bytes.extend(src_bytes)
+            join_bytes.extend(file_target_bytes[num_bytes:])
+        elif address_file_target >= file_target_size:
+            join_bytes.extend(file_target_bytes)
+            join_bytes.extend(src_bytes)
+        else:
+            join_bytes.extend(file_target_bytes[:address_file_target])
+            join_bytes.extend(src_bytes)
+            join_bytes.extend(
+                file_target_bytes[address_file_target+num_bytes:])
+        # Write data to file
+        return self._write_file(path_file_target, join_bytes)
+
+
+    def split_files(self, path_file_input: str, address: int,
+                  path_file_output_1: str, path_file_output_2: str):
+        '''
+        Split the provided binary file by specified address into two
+        binary files.
+        '''
+        # Check arguments
+        if (path_file_input == "") \
+        or (path_file_output_1 == "") \
+        or (path_file_output_2 == ""):
+            logger.error("Files path required to split bin file")
+            return False
+        if address == 0:
+            logger.error("Invalid address")
+            return False
+        # Read the full file content and check it
+        file_bytes = self._read_file(path_file_input)
+        if file_bytes is None:
+            print(f"Fail to read binary file {path_file_input}")
+            return False
+        file_size = len(file_bytes)
+        if address >= file_size:
+            print(f"Address requested to read from binary file larger "
+                  f"than file size (max address: 0x{file_size - 1:02x}")
+            return False
+        # Split the data and write to files
+        bytes_1 = file_bytes[:address-1]
+        bytes_2 = file_bytes[address:]
+        write_success = []
+        write_success.append(self._write_file(path_file_output_1, bytes_1))
+        write_success.append(self._write_file(path_file_output_2, bytes_2))
+        if False in write_success:
+            return False
+        return True
 
 
     def show_file(self, file_path: str, from_address: int,
