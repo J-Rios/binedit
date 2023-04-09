@@ -3,7 +3,7 @@
 # Check required arguments
 if [ $# -lt 2 ]; then
     echo "Required input firmware file and output app file to generate:"
-    echo "binedit_get_app firmware.bin app.bin"
+    echo "  binedit_get_app firmware.bin app.bin"
     exit 1
 fi
 

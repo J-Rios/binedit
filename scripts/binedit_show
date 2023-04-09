@@ -3,8 +3,8 @@
 # Check required arguments
 if [ $# -lt 1 ]; then
     echo "Required a binary file (and optionally an address and size):"
-    echo "binedit_show firmware.bin"
-    echo "binedit_show firmware.bin 0x08008000 64"
+    echo "  binedit_show firmware.bin"
+    echo "  binedit_show firmware.bin 0x08008000 64"
     exit 1
 fi
 

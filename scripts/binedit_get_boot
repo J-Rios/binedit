@@ -3,7 +3,7 @@
 # Check required arguments
 if [ $# -lt 2 ]; then
     echo "Required input firmware file and output bootloader file to generate:"
-    echo "binedit_get_boot firmware.bin boot.bin"
+    echo "  binedit_get_boot firmware.bin boot.bin"
     exit 1
 fi
 

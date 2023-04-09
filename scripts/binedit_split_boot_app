@@ -3,7 +3,7 @@
 # Check required arguments
 if [ $# -lt 3 ]; then
     echo "Required input firmware file and output bootloader file to generate:"
-    echo "binedit_split_boot_app firmware.bin boot.bin app.bin"
+    echo "  binedit_split_boot_app firmware.bin boot.bin app.bin"
     exit 1
 fi
 

@@ -3,7 +3,7 @@
 # Check required arguments
 if [ $# -lt 3 ]; then
     echo "Required input boot and app files and output file:"
-    echo "binedit_add_boot_app firmware.bin boot.bin app.bin"
+    echo "  binedit_add_boot_app firmware.bin boot.bin app.bin"
     exit 1
 fi
 
