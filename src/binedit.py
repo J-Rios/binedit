@@ -9,6 +9,8 @@ Description:
     It supports the next features:
       - Create empty binary files full of 0xFF to specified size.
       - Show binary file's content in hexadecimal and ascii (hexdump).
+      - Clear bytes (set to 0xFF) on given binary file address.
+      - Extract binary file data from address range into a binary file.
 Author:
     Jose Miguel Rios Rubio
 Creation date:
@@ -73,8 +75,20 @@ class TEXT():
     OPT_SHOW = \
         "Read and show hexadecimal and ascii of a binary file."
 
+    OPT_CLEAR = \
+        "Clear data bytes from a binary file."
+
+    OPT_GET = \
+        "Extract data from a binary file address to a new binary file."
+
     OPT_INPUT = \
         "Input binary file to use."
+
+    OPT_OUTPUT = \
+        "Output binary file to use."
+
+    OPT_ADDRESS_INPUT = \
+        "Specify input binary address."
 
     OPT_SIZE = \
         "Specify size of bytes to manipulate."
@@ -95,8 +109,14 @@ def parse_options():
     parser.add_argument("-v", "--version", action="version")
     parser.add_argument("--create", help=TEXT.OPT_CREATE, action="store_true")
     parser.add_argument("--show", help=TEXT.OPT_SHOW, action="store_true")
+    parser.add_argument("--clear", help=TEXT.OPT_CLEAR, action="store_true")
+    parser.add_argument("--get", help=TEXT.OPT_GET, action="store_true")
     parser.add_argument("--input", help=TEXT.OPT_INPUT,
                         action="store", type=str)
+    parser.add_argument("--output", help=TEXT.OPT_OUTPUT,
+                        action="store", type=str)
+    parser.add_argument("--address", help=TEXT.OPT_ADDRESS_INPUT,
+                        action="store", type=auto_int, default=0)
     parser.add_argument("-s", "--size", help=TEXT.OPT_SIZE,
                         action="store", type=auto_int, default=0)
     args = parser.parse_args()
@@ -106,6 +126,12 @@ def parse_options():
         parser.error("Arguments Required: --input, --size")
     if (args.show) and (args.input is None):
         parser.error("Arguments Required: --input")
+    if args.clear and ( (args.input is None) or (args.address is None)
+                     or (args.size == 0) ):
+        parser.error("Arguments Required: --input, --address, --size")
+    if args.get and ( (args.input is None) or (args.output is None)
+                     or (args.address is None) ):
+        parser.error("Arguments Required: --input, --output, --address")
     return args
 
 
@@ -123,6 +149,12 @@ def main(argc, argv):
         logger.debug("Showing binary file...")
         binedit.show_file(args.input, args.address, args.size,
                           args.base_address)
+    elif args.clear:
+        logger.debug("Clearing data from binary file...")
+        binedit.clear_data(args.input, args.address, args.size)
+    elif args.get:
+        logger.debug("Getting data from binary file...")
+        binedit.extract_data(args.input, args.address, args.size, args.output)
     return 0
 
 

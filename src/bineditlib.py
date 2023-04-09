@@ -9,6 +9,8 @@ Description:
     It supports the next features:
       - Create empty binary files full of 0xFF to specified size.
       - Show binary file's content in hexadecimal and ascii (hexdump).
+      - Clear bytes (set to 0xFF) on given binary file address.
+      - Extract binary file data from address range into a binary file.
 Author:
     Jose Miguel Rios Rubio
 Creation date:
@@ -93,6 +95,70 @@ class BinEdit():
             logger.error(f"Fail to create binary file {file_path}\n")
             return False
         return True
+
+
+    def clear_data(self, file_path: str, address: int, num_bytes: int):
+        '''
+        Clear data bytes from the provided binary file at the
+        specified address and umber of bytes (clear means set to 0xFF).
+        '''
+        # Check arguments
+        if file_path == "":
+            logger.error("File path required to create bin file")
+            return False
+        if num_bytes == 0:
+            logger.error("Number of bytes required to create bin file")
+            return False
+        # Read the full file content and check it
+        file_bytes = self._read_file(file_path)
+        if file_bytes is None:
+            print(f"Fail to read source binary file {file_path}")
+            return False
+        if address >= len(file_bytes):
+            logger.error("Address higher than file content")
+            return False
+        # Limit size of bytes to use if request more than file size
+        file_size = len(file_bytes)
+        if address + num_bytes > file_size:
+            num_bytes = file_size - address
+        # Clear the data
+        clear_bytes = bytearray([0xFF] * num_bytes)
+        bytes_to_write = bytearray()
+        if address == 0:
+            bytes_to_write.extend(clear_bytes)
+            bytes_to_write.extend(file_bytes[num_bytes:])
+        else:
+            bytes_to_write.extend(file_bytes[:address])
+            bytes_to_write.extend(clear_bytes)
+            bytes_to_write.extend(file_bytes[address+num_bytes:])
+        # Write data to file
+        return self._write_file(file_path, bytes_to_write)
+
+
+    def extract_data(self, path_file_input: str, address: int, num_bytes: int,
+                     path_file_output: str):
+        '''
+        Extract data from provided binary file and specified address into a
+        new binary file.
+        '''
+        # Check arguments
+        if path_file_input == "" or path_file_output == "":
+            logger.error("Files path required to extract data from bin file")
+            return False
+        if address == 0:
+            logger.error("Address larger than 0 required")
+            return False
+        # If number of bytes is zero, use file full size from address
+        if num_bytes == 0:
+            num_bytes = os_stat(path_file_input).st_size - address
+        # Read the full file content and check it
+        file_bytes = self._read_file(path_file_input)
+        if file_bytes is None:
+            print(f"Fail to read source binary file {path_file_input}")
+            return False
+        # Get the requested data section and write it to file
+        extract_bytes = file_bytes[address:num_bytes]
+        return self._write_file(path_file_output, extract_bytes)
 
 
     def show_file(self, file_path: str, from_address: int,
