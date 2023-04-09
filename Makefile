@@ -8,3 +8,5 @@ uninstall:
 	sudo rm -f /usr/local/bin/binedit
 	sudo rm -f /usr/local/bin/binedit_*
 	sudo rm -rf /opt/binedit
+
+reinstall: uninstall install
